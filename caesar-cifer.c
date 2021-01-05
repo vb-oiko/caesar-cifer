@@ -88,20 +88,19 @@ int main(int argc, char *argv[])
     {
         if (shift == 0)
         {
-            fprintf(stderr, "shift value not specified, random value will be used\n");
+            shift = getRndShift();
+            fprintf(stderr, "shift value not specified, random value=%d will be used\n", shift);
         }
 
-        fprintf(stderr, "encoding...\n");
         parseFileNames(argc, argv, commandArgInd + 1);
 
         char *msg = readMsg();
-        printf("message\n%s\n", msg);
-
-        shift = shift ? shift : getRndShift();
-        printf("shift: %d\n", shift);
 
         char *encodedMsg = encode(msg, shift);
-        printf("encoded message\n%s\n", encodedMsg);
+        fprintf(output != NULL ? output : stdout, "%s", encodedMsg);
+        fflush(stdout);
+        fprintf(stderr, "\n");
+        fprintf(stderr, "successfully encoded %zu bytes\n", strlen(encodedMsg));
 
         free(encodedMsg);
         free(msg);
@@ -240,8 +239,6 @@ void closeFiles()
     {
         fclose(output);
     }
-
-    fprintf(stderr, "closing files...\n");
 }
 
 void getFilenameWithPath(const char *filename, char *filenameWithPath)
