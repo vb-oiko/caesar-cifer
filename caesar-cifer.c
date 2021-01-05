@@ -16,6 +16,7 @@ void parseFileNames(int argc, char *argv[], int fileNameArgInd);
 FILE *openFile(const char *filename, const char *mode);
 void closeFiles();
 void getFilenameWithPath(const char *filename, char *filenameWithPath);
+char *readMsg();
 
 int shift = 0;
 int commandArgInd = 1;
@@ -86,6 +87,11 @@ int main(int argc, char *argv[])
 
         fprintf(stderr, "encoding...\n");
         parseFileNames(argc, argv, commandArgInd + 1);
+
+        char *msg = readMsg();
+        printf("message\n%s\n", msg);
+
+        free(msg);
         closeFiles();
         exit(EXIT_SUCCESS);
     }
@@ -238,4 +244,18 @@ void getFilenameWithPath(const char *filename, char *filenameWithPath)
     strcat(path, "/");
     strcat(path, filename);
     strcpy(filenameWithPath, path);
+}
+
+char *readMsg()
+{
+    char *buffer = NULL;
+    size_t len = 0;
+    ssize_t bytes_read = getdelim(&buffer, &len, '\0', input != NULL ? input : stdin);
+    if (bytes_read == -1)
+    {
+        fprintf(stderr, "Failed to read data\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return buffer;
 }
