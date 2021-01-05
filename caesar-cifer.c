@@ -20,6 +20,7 @@ FILE *openFile(const char *filename, const char *mode);
 void closeFiles();
 void getFilenameWithPath(const char *filename, char *filenameWithPath);
 char *readMsg();
+int getRndShift();
 
 int shift = 0;
 int commandArgInd = 1;
