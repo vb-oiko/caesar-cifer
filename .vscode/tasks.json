@@ -1,0 +1,33 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "C/C++: gcc build active file",
+            "command": "gcc",
+            "args": [
+                "-g",
+                "${file}",
+                "-lm",
+                "-o",
+                "${workspaceFolder}/${fileBasenameNoExtension}",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": "absolute"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        }
+    ],
+    "version": "2.0.0"
+}

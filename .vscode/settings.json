@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "functional": "c",
+        "string": "c",
+        "sstream": "c",
+        "limits": "c",
+        "algorithm": "c"
+    }
+}
