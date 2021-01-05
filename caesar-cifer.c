@@ -5,6 +5,7 @@
 #include <time.h>
 
 #define ALPHABET_LEN 26
+const char *ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 void printHelpMsg();
 void printWrongCommandMsg(char *str);
@@ -21,6 +22,7 @@ void closeFiles();
 void getFilenameWithPath(const char *filename, char *filenameWithPath);
 char *readMsg();
 int getRndShift();
+char *encode(const char *msg, const int shift);
 
 int shift = 0;
 int commandArgInd = 1;
@@ -98,6 +100,10 @@ int main(int argc, char *argv[])
         shift = shift ? shift : getRndShift();
         printf("shift: %d\n", shift);
 
+        char *encodedMsg = encode(msg, shift);
+        printf("encoded message\n%s\n", encodedMsg);
+
+        free(encodedMsg);
         free(msg);
         closeFiles();
         exit(EXIT_SUCCESS);
@@ -271,4 +277,33 @@ int getRndShift()
 {
     srand(time(NULL));
     return rand() % (ALPHABET_LEN - 1) + 1;
+}
+
+char *encode(const char *msg, const int shift)
+{
+    size_t len = strlen(msg);
+    char *encodedMsg = malloc(len * sizeof(char));
+    if (encodedMsg == NULL)
+    {
+        fprintf(stderr, "Failed to allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (size_t i = 0; i < len; i++)
+    {
+        char *offset = strchr(ALPHABET, msg[i]);
+
+        if (offset == NULL)
+        {
+            encodedMsg[i] = msg[i];
+        }
+        else
+        {
+            size_t pos = offset - ALPHABET;
+            size_t encodedPos = (pos + shift) % ALPHABET_LEN;
+            encodedMsg[i] = ALPHABET[encodedPos];
+        }
+    }
+
+    return encodedMsg;
 }
