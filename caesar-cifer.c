@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
+
+#define ALPHABET_LEN 26
 
 void printHelpMsg();
 void printWrongCommandMsg(char *str);
@@ -52,7 +55,7 @@ int main(int argc, char *argv[])
 
         if (n < 1 || n > 25)
         {
-            fprintf(stderr, "Shift value must be in range 1 .. 25\n");
+            fprintf(stderr, "Shift value must be in range 1 .. %d\n", ALPHABET_LEN - 1);
             exit(EXIT_FAILURE);
         }
 
@@ -90,6 +93,9 @@ int main(int argc, char *argv[])
 
         char *msg = readMsg();
         printf("message\n%s\n", msg);
+
+        shift = shift ? shift : getRndShift();
+        printf("shift: %d\n", shift);
 
         free(msg);
         closeFiles();
@@ -258,4 +264,10 @@ char *readMsg()
     }
 
     return buffer;
+}
+
+int getRndShift()
+{
+    srand(time(NULL));
+    return rand() % (ALPHABET_LEN - 1) + 1;
 }
