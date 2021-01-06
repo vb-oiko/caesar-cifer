@@ -54,12 +54,14 @@ int getRndShift();
 char *encode(const char *msg, const int shift);
 float *getFrequencies(const char *text, const int shift);
 char *jsonEncodeFrequencies(float *frequencies);
-void parseShiftValue(char *arg);
+void parseShiftOptionValue(char *arg);
+void parseFrequencyOptionValue(char *arg);
 
 int shift = 0;
 int commandArgInd = 1;
 FILE *input = NULL;
 FILE *output = NULL;
+float *frequencies;
 
 int main(int argc, char *argv[])
 {
@@ -91,11 +93,11 @@ int main(int argc, char *argv[])
             break;
 
         case 's':
-            parseShiftValue(optarg);
+            parseShiftOptionValue(optarg);
             break;
 
         case 'f':
-            printf("frequency with value `%s'\n", optarg);
+            parseFrequencyOptionValue(optarg);
             break;
 
         case '?':
@@ -113,7 +115,7 @@ int main(int argc, char *argv[])
         if (argc > 1)
         {
 
-            fprintf(stderr, "%s: no command specified\n", argv[0]);
+            fprintf(stderr, "caesar-cifer: no command specified\n");
             printf("\n");
             printHelpMsg();
             exit(EXIT_FAILURE);
@@ -127,7 +129,7 @@ int main(int argc, char *argv[])
         if (shift == 0)
         {
             shift = getRndShift();
-            fprintf(stderr, "shift value not specified, random value=%d will be used\n", shift);
+            fprintf(stderr, "caesar-cifer: shift value not specified, random value=%d will be used\n", shift);
         }
 
         parseFileNames(argc, argv, optind + 1);
@@ -137,8 +139,6 @@ int main(int argc, char *argv[])
         char *encodedMsg = encode(msg, shift);
         fprintf(output != NULL ? output : stdout, "%s", encodedMsg);
         fflush(stdout);
-        fprintf(stderr, "\n");
-        fprintf(stderr, "successfully encoded %zu bytes\n", strlen(encodedMsg));
 
         free(encodedMsg);
         free(msg);
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
     {
         if (shift != 0)
         {
-            fprintf(stderr, "shift value ignored for decoding, trying all possible shift values\n");
+            fprintf(stderr, "caesar-cifer: shift value ignored for decoding, trying all possible shift values\n");
         }
 
         fprintf(stderr, "decoding...\n");
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     {
         if (shift != 0)
         {
-            fprintf(stderr, "shift value ignored for computing frequencies\n");
+            fprintf(stderr, "caesar-cifer: shift value ignored for computing frequencies\n");
         }
 
         parseFileNames(argc, argv, optind + 1);
@@ -185,20 +185,25 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
 }
 
-void parseShiftValue(char *arg)
+void parseFrequencyOptionValue(char *arg)
+{
+    FILE *freqFile = openFile(arg, "r");
+}
+
+void parseShiftOptionValue(char *arg)
 {
     char *n_endptr;
     int n = strtol(arg, &n_endptr, 10);
 
     if (n_endptr == arg || *n_endptr != '\0')
     {
-        fprintf(stderr, "Shift value specified is not a decimal number\n");
+        fprintf(stderr, "caesar-cifer: shift value specified is not a decimal number\n");
         exit(EXIT_FAILURE);
     }
 
     if (n < 1 || n > 25)
     {
-        fprintf(stderr, "Shift value must be in range 1 .. %d\n", ALPHABET_LEN - 1);
+        fprintf(stderr, "caesar-cifer: shift value must be in range 1 .. %d\n", ALPHABET_LEN - 1);
         exit(EXIT_FAILURE);
     }
 
@@ -287,7 +292,7 @@ FILE *openFile(const char *filename, const char *mode)
         return fptr;
     }
 
-    fprintf(stderr, "Failed to open file '%s'\n\n", filename);
+    fprintf(stderr, "caesar-cifer: Failed to open file '%s'\n\n", filename);
     exit(EXIT_FAILURE);
 }
 
@@ -326,7 +331,7 @@ char *readStreamToString(FILE *fileptr)
     ssize_t bytes_read = getdelim(&buffer, &len, '\0', fileptr != NULL ? fileptr : stdin);
     if (bytes_read == -1)
     {
-        fprintf(stderr, "Failed to read data\n");
+        fprintf(stderr, "caesar-cifer: failed to read data\n");
         exit(EXIT_FAILURE);
     }
 
@@ -345,7 +350,7 @@ char *encode(const char *msg, const int shift)
     char *encodedMsg = malloc(len * sizeof(char));
     if (encodedMsg == NULL)
     {
-        fprintf(stderr, "Failed to allocate memory\n");
+        fprintf(stderr, "caesar-cifer: failed to allocate memory\n");
         exit(EXIT_FAILURE);
     }
 
@@ -373,7 +378,7 @@ float *getFrequencies(const char *text, const int shift)
     size_t *counts = malloc(ALPHABET_LEN * sizeof(size_t));
     if (counts == NULL)
     {
-        fprintf(stderr, "Failed to allocate memory\n");
+        fprintf(stderr, "caesar-cifer: failed to allocate memory\n");
         exit(EXIT_FAILURE);
     }
 
@@ -405,7 +410,7 @@ float *getFrequencies(const char *text, const int shift)
     float *frequencies = malloc(ALPHABET_LEN * sizeof(size_t));
     if (frequencies == NULL)
     {
-        fprintf(stderr, "Failed to allocate memory\n");
+        fprintf(stderr, "caesar-cifer: failed to allocate memory\n");
         exit(EXIT_FAILURE);
     }
 
@@ -424,7 +429,7 @@ char *jsonEncodeFrequencies(float *frequencies)
     char *json = malloc(2048 * sizeof(char));
     if (json == NULL)
     {
-        fprintf(stderr, "Failed to allocate memory\n");
+        fprintf(stderr, "caesar-cifer: failed to allocate memory\n");
         exit(EXIT_FAILURE);
     }
     json[0] = '\0';
