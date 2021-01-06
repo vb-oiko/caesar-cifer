@@ -63,6 +63,7 @@ void parseFrequencyOptionValue(char *arg);
 void *safeMalloc(size_t size);
 float *parseFrequencies(const char *freqStr);
 float getFreqDeviation(float *freq1, float *freq2);
+int findShift(char *msg);
 
 int shift = 0;
 int commandArgInd = 1;
@@ -164,6 +165,14 @@ int main(int argc, char *argv[])
 
         fprintf(stderr, "decoding...\n");
         parseFileNames(argc, argv, optind + 1);
+
+        char *msg = readStreamToString(input);
+
+        int sh = findShift(msg);
+
+        printf("Shift=%d\n", sh);
+
+        free(msg);
         closeFiles();
         exit(EXIT_SUCCESS);
     }
@@ -524,4 +533,24 @@ float getFreqDeviation(float *freq1, float *freq2)
     }
 
     return dev;
+}
+
+int findShift(char *msg)
+{
+    float minDev;
+    int bestShift;
+
+    for (int curShift = 1; curShift < ALPHABET_LEN; curShift++)
+    {
+        float *curFreqs = getFrequencies(msg, curShift);
+        float curDev = getFreqDeviation(frequencies, curFreqs);
+
+        if (curShift == 1 || curDev < minDev)
+        {
+            minDev = curDev;
+            bestShift = curShift;
+        }
+    }
+
+    return bestShift;
 }
