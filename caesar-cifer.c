@@ -5,6 +5,7 @@
 #include <time.h>
 #include <getopt.h>
 #include <regex.h>
+#include <math.h>
 
 #define ARRAY_SIZE(arr) (sizeof((arr)) / sizeof((arr)[0]))
 
@@ -61,6 +62,7 @@ void parseShiftOptionValue(char *arg);
 void parseFrequencyOptionValue(char *arg);
 void *safeMalloc(size_t size);
 float *parseFrequencies(const char *freqStr);
+float getFreqDeviation(float *freq1, float *freq2);
 
 int shift = 0;
 int commandArgInd = 1;
@@ -510,4 +512,16 @@ float *parseFrequencies(const char *freqStr)
     free(freqStrCopy);
     regfree(&regex);
     return frequencies;
+}
+
+float getFreqDeviation(float *freq1, float *freq2)
+{
+    float dev = 0.0;
+
+    for (size_t i = 0; i < ALPHABET_LEN; i++)
+    {
+        dev += (float)fabs(freq1[i] - freq2[i]);
+    }
+
+    return dev;
 }
