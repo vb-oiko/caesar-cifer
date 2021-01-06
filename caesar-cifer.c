@@ -131,7 +131,6 @@ int main(int argc, char *argv[])
             fprintf(stderr, "shift value ignored for computing frequencies\n");
         }
 
-        fprintf(stderr, "computing frequencies...\n");
         parseFileNames(argc, argv, commandArgInd + 1);
         char *text = readInputStream();
 
@@ -396,7 +395,7 @@ char *jsonEncodeFrequencies(float *frequencies)
         fprintf(stderr, "Failed to allocate memory\n");
         exit(EXIT_FAILURE);
     }
-
+    json[0] = '\0';
     strcat(json, "{\n");
 
     for (size_t i = 0; i < ALPHABET_LEN; i++)
