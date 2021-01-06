@@ -292,7 +292,7 @@ FILE *openFile(const char *filename, const char *mode)
         return fptr;
     }
 
-    fprintf(stderr, "caesar-cifer: Failed to open file '%s'\n\n", filename);
+    fprintf(stderr, "caesar-cifer: failed to open file '%s'\n\n", filename);
     exit(EXIT_FAILURE);
 }
 
