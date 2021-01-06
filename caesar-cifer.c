@@ -49,7 +49,7 @@ void parseFileNames(int argc, char *argv[], int fileNameArgInd);
 FILE *openFile(const char *filename, const char *mode);
 void closeFiles();
 void getFilenameWithPath(const char *filename, char *filenameWithPath);
-char *readInputStream();
+char *readStreamToString(FILE *fileptr);
 int getRndShift();
 char *encode(const char *msg, const int shift);
 float *getFrequencies(const char *text, const int shift);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 
         parseFileNames(argc, argv, optind + 1);
 
-        char *msg = readInputStream();
+        char *msg = readStreamToString(input);
 
         char *encodedMsg = encode(msg, shift);
         fprintf(output != NULL ? output : stdout, "%s", encodedMsg);
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
         }
 
         parseFileNames(argc, argv, optind + 1);
-        char *text = readInputStream();
+        char *text = readStreamToString(input);
 
         float *frequencies = getFrequencies(text, 0);
         char *json = jsonEncodeFrequencies(frequencies);
@@ -319,11 +319,11 @@ void getFilenameWithPath(const char *filename, char *filenameWithPath)
     strcpy(filenameWithPath, path);
 }
 
-char *readInputStream()
+char *readStreamToString(FILE *fileptr)
 {
     char *buffer = NULL;
     size_t len = 0;
-    ssize_t bytes_read = getdelim(&buffer, &len, '\0', input != NULL ? input : stdin);
+    ssize_t bytes_read = getdelim(&buffer, &len, '\0', fileptr != NULL ? fileptr : stdin);
     if (bytes_read == -1)
     {
         fprintf(stderr, "Failed to read data\n");
