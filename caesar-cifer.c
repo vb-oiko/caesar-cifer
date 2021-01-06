@@ -23,6 +23,7 @@ void getFilenameWithPath(const char *filename, char *filenameWithPath);
 char *readMsg();
 int getRndShift();
 char *encode(const char *msg, const int shift);
+float *getFrequencies(const char *msg, const int shift);
 
 int shift = 0;
 int commandArgInd = 1;
@@ -303,4 +304,54 @@ char *encode(const char *msg, const int shift)
     }
 
     return encodedMsg;
+}
+
+float *getFrequencies(const char *msg, const int shift)
+{
+    size_t *counts = malloc(ALPHABET_LEN * sizeof(size_t));
+    if (counts == NULL)
+    {
+        fprintf(stderr, "Failed to allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (size_t i = 0; i < ALPHABET_LEN; i++)
+    {
+        counts[i] = 0;
+    }
+
+    size_t len = strlen(msg);
+
+    for (size_t i = 0; i < len; i++)
+    {
+        char *offset = strchr(ALPHABET, msg[i]);
+
+        if (offset != NULL)
+        {
+            size_t pos = offset - ALPHABET;
+            size_t decodedPos = (pos + ALPHABET_LEN - shift) % ALPHABET_LEN;
+            counts[decodedPos]++;
+        }
+    }
+
+    size_t total = 0;
+    for (size_t i = 0; i < ALPHABET_LEN; i++)
+    {
+        total += counts[i];
+    }
+
+    float *frequencies = malloc(ALPHABET_LEN * sizeof(size_t));
+    if (frequencies == NULL)
+    {
+        fprintf(stderr, "Failed to allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (size_t i = 0; i < ALPHABET_LEN; i++)
+    {
+        frequencies[i] = (float)counts[i] / (float)total;
+    }
+
+    free(counts);
+    return frequencies;
 }
