@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <time.h>
 #include <getopt.h>
+#include <regex.h>
+
+#define ARRAY_SIZE(arr) (sizeof((arr)) / sizeof((arr)[0]))
 
 #define ALPHABET_LEN 26
 const char *ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -57,6 +60,7 @@ char *jsonEncodeFrequencies(float *frequencies);
 void parseShiftOptionValue(char *arg);
 void parseFrequencyOptionValue(char *arg);
 void *safeMalloc(size_t size);
+float *parseFrequencies(const char *freqStr);
 
 int shift = 0;
 int commandArgInd = 1;
@@ -189,6 +193,7 @@ int main(int argc, char *argv[])
 void parseFrequencyOptionValue(char *arg)
 {
     FILE *freqFile = openFile(arg, "r");
+    printf("%p", freqFile);
 }
 
 void parseShiftOptionValue(char *arg)
@@ -436,4 +441,71 @@ void *safeMalloc(size_t size)
         exit(EXIT_FAILURE);
     }
     return ptr;
+}
+
+float *parseFrequencies(const char *freqStr)
+{
+    float *frequencies = safeMalloc(ALPHABET_LEN * sizeof(float));
+    for (size_t i = 0; i < ALPHABET_LEN; i++)
+    {
+        frequencies[i] = 0.0;
+    }
+
+    char *s = safeMalloc((strlen(freqStr) + 1) * sizeof(char));
+
+    strcpy(s, freqStr);
+
+    char *pattern = "\"([A-Z])\"\\W*[:]\\W*([0-9]\\.[0-9]+)";
+    regex_t regex;
+
+    if (regcomp(&regex, pattern, REG_EXTENDED))
+    {
+        printf("caesar-cifer: failed to compile regex pattern\n");
+        exit(EXIT_FAILURE);
+    }
+
+    regmatch_t pmatch[3];
+    char *st;
+    size_t len;
+
+    for (int i = 0;; i++)
+    {
+        if (regexec(&regex, s, ARRAY_SIZE(pmatch), pmatch, 0))
+        {
+            break;
+        }
+        int letter = s[pmatch[1].rm_so];
+        char *offset = strchr(ALPHABET, letter);
+        if (offset == NULL)
+        {
+            printf("caesar-cifer: frequencies file parsing error, letter '%c' is not in the alpahbet\n", letter);
+            exit(EXIT_FAILURE);
+        }
+
+        size_t pos = offset - ALPHABET;
+
+        st = s + pmatch[2].rm_so;
+        len = pmatch[2].rm_eo - pmatch[2].rm_so;
+
+        char *freqStr = malloc((len + 1) * sizeof(char));
+        memcpy(freqStr, st, len);
+        freqStr[len + 1] = '\0';
+
+        char *endp;
+        float freqVal = strtof(freqStr, &endp);
+        if (freqStr == endp || *endp != '\0')
+        {
+            printf("caesar-cifer: frequencies file parsing error, valuem '%s' is not a float number\n", freqStr);
+            exit(EXIT_FAILURE);
+        }
+
+        frequencies[pos] = freqVal;
+
+        s += (pmatch[0].rm_eo + 1);
+
+        printf("[%zu]: %f\n", pos, frequencies[pos]);
+    }
+
+    regfree(&regex);
+    return frequencies;
 }
