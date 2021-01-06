@@ -495,17 +495,16 @@ float *parseFrequencies(const char *freqStr)
         float freqVal = strtof(freqStr, &endp);
         if (freqStr == endp || *endp != '\0')
         {
-            printf("caesar-cifer: frequencies file parsing error, valuem '%s' is not a float number\n", freqStr);
+            printf("caesar-cifer: frequencies file parsing error, value '%s' is not a float number\n", freqStr);
             exit(EXIT_FAILURE);
         }
 
         frequencies[pos] = freqVal;
 
         s += (pmatch[0].rm_eo + 1);
-
-        printf("[%zu]: %f\n", pos, frequencies[pos]);
     }
 
+    free(s);
     regfree(&regex);
     return frequencies;
 }
