@@ -238,7 +238,7 @@ int isFrequencyCommand(char *str)
 
 void printHelpMsg()
 {
-    fprintf(stderr, "caesar-cifer [OPTIONS] COMMAND [[input-file] ouput-file]\n\n");
+    fprintf(stderr, "caesar-cifer [OPTIONS] COMMAND [[input] ouput]\n\n");
     fprintf(stderr, "Caesar cifer decoder/encoder\n");
     fprintf(stderr, "If input file is not specified, input data are read from stdin.\n");
     fprintf(stderr, "If output file is not specified, processed data are written to stdout.\n");
@@ -246,7 +246,7 @@ void printHelpMsg()
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -h, --help               Display current manual\n");
     fprintf(stderr, "  -s, --shift integer      Use specified shift value when encoding\n");
-    fprintf(stderr, "  -f, --frequency string   Use specified file with letters frrquencies\n");
+    fprintf(stderr, "  -f, --frequency string   Use specified file with letters frequencies\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "Commands:\n");
     fprintf(stderr, "  encode      Encode stream\n");
