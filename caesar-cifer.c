@@ -7,6 +7,37 @@
 #define ALPHABET_LEN 26
 const char *ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+#define MULTILINE(...) #__VA_ARGS__
+const char *DEFAULT_FREQUENCIES = MULTILINE(
+    {
+        "A" : 0.084883,
+        "B" : 0.015791,
+        "C" : 0.032149,
+        "D" : 0.038351,
+        "E" : 0.121006,
+        "F" : 0.021306,
+        "G" : 0.020925,
+        "H" : 0.047875,
+        "I" : 0.072240,
+        "J" : 0.002258,
+        "K" : 0.008187,
+        "L" : 0.042097,
+        "M" : 0.025545,
+        "N" : 0.071593,
+        "O" : 0.075920,
+        "P" : 0.021200,
+        "Q" : 0.000866,
+        "R" : 0.063569,
+        "S" : 0.066581,
+        "T" : 0.090040,
+        "U" : 0.027324,
+        "V" : 0.010819,
+        "W" : 0.018478,
+        "X" : 0.001888,
+        "Y" : 0.017939,
+        "Z" : 0.001168
+    });
+
 void printHelpMsg();
 void printWrongCommandMsg(char *str);
 void printSeeHelp();
