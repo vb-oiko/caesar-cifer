@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <getopt.h>
 
 #define ALPHABET_LEN 26
 const char *ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -41,10 +42,6 @@ const char *DEFAULT_FREQUENCIES = MULTILINE(
 void printHelpMsg();
 void printWrongCommandMsg(char *str);
 void printSeeHelp();
-int isHelpOption(char *str);
-int isShiftOption(char *str);
-int isOptionTag(char *str);
-int isOption(char *str);
 int isDecodeCommand(char *str);
 int isEncodeCommand(char *str);
 int isFrequencyCommand(char *str);
@@ -57,6 +54,7 @@ int getRndShift();
 char *encode(const char *msg, const int shift);
 float *getFrequencies(const char *text, const int shift);
 char *jsonEncodeFrequencies(float *frequencies);
+void parseShiftValue(char *arg);
 
 int shift = 0;
 int commandArgInd = 1;
@@ -65,60 +63,66 @@ FILE *output = NULL;
 
 int main(int argc, char *argv[])
 {
-    if (
-        argc == 1 ||
-        (argc > 1 && isHelpOption(argv[1])))
+    int opt;
+
+    while (1)
     {
+        static struct option long_options[] =
+            {
+                {"help", no_argument, 0, 'h'},
+                {"shift", required_argument, 0, 's'},
+                {"frequency", required_argument, 0, 'f'},
+                {0, 0, 0, 0}};
+
+        int option_index = 0;
+
+        opt = getopt_long(argc, argv, "hs:f:",
+                          long_options, &option_index);
+
+        if (opt == -1)
+            break;
+
+        switch (opt)
+        {
+
+        case 'h':
+            printHelpMsg();
+            exit(EXIT_SUCCESS);
+            break;
+
+        case 's':
+            parseShiftValue(optarg);
+            break;
+
+        case 'f':
+            printf("frequency with value `%s'\n", optarg);
+            break;
+
+        case '?':
+            break;
+
+        default:
+            printHelpMsg();
+            fprintf(stderr, "\n\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (optind == argc)
+    {
+        if (argc > 1)
+        {
+
+            fprintf(stderr, "%s: no command specified\n", argv[0]);
+            printf("\n");
+            printHelpMsg();
+            exit(EXIT_FAILURE);
+        }
         printHelpMsg();
-        return EXIT_SUCCESS;
+        exit(EXIT_SUCCESS);
     }
 
-    if (argc > 1 && isShiftOption(argv[1]))
-    {
-        if (argc == 2)
-        {
-            fprintf(stderr, "No shift value specified\n");
-            exit(EXIT_FAILURE);
-        }
-
-        char *n_endptr;
-        int n = strtol(argv[2], &n_endptr, 10);
-
-        if (n_endptr == argv[2] || *n_endptr != '\0')
-        {
-            fprintf(stderr, "Shift value specified is not a decimal number\n");
-            exit(EXIT_FAILURE);
-        }
-
-        if (n < 1 || n > 25)
-        {
-            fprintf(stderr, "Shift value must be in range 1 .. %d\n", ALPHABET_LEN - 1);
-            exit(EXIT_FAILURE);
-        }
-
-        shift = n;
-        commandArgInd = 3;
-    }
-
-    if (argc > 1 && isOption(argv[1]) && !shift)
-    {
-        fprintf(stderr, "unknown flag: %s\n", argv[1]);
-        exit(EXIT_FAILURE);
-    }
-
-    if (argc > 1 && isOptionTag(argv[1]) && !shift)
-    {
-        fprintf(stderr, "unknown shorthand flag: %s\n", argv[1]);
-        exit(EXIT_FAILURE);
-    }
-
-    if (argc == commandArgInd)
-    {
-        fprintf(stderr, "no command specified\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if (isEncodeCommand(argv[commandArgInd]))
+    if (isEncodeCommand(argv[optind]))
     {
         if (shift == 0)
         {
@@ -126,7 +130,7 @@ int main(int argc, char *argv[])
             fprintf(stderr, "shift value not specified, random value=%d will be used\n", shift);
         }
 
-        parseFileNames(argc, argv, commandArgInd + 1);
+        parseFileNames(argc, argv, optind + 1);
 
         char *msg = readInputStream();
 
@@ -142,7 +146,7 @@ int main(int argc, char *argv[])
         exit(EXIT_SUCCESS);
     }
 
-    if (isDecodeCommand(argv[commandArgInd]))
+    if (isDecodeCommand(argv[optind]))
     {
         if (shift != 0)
         {
@@ -150,19 +154,19 @@ int main(int argc, char *argv[])
         }
 
         fprintf(stderr, "decoding...\n");
-        parseFileNames(argc, argv, commandArgInd + 1);
+        parseFileNames(argc, argv, optind + 1);
         closeFiles();
         exit(EXIT_SUCCESS);
     }
 
-    if (isFrequencyCommand(argv[commandArgInd]))
+    if (isFrequencyCommand(argv[optind]))
     {
         if (shift != 0)
         {
             fprintf(stderr, "shift value ignored for computing frequencies\n");
         }
 
-        parseFileNames(argc, argv, commandArgInd + 1);
+        parseFileNames(argc, argv, optind + 1);
         char *text = readInputStream();
 
         float *frequencies = getFrequencies(text, 0);
@@ -177,32 +181,28 @@ int main(int argc, char *argv[])
         exit(EXIT_SUCCESS);
     }
 
-    printWrongCommandMsg(argv[commandArgInd]);
+    printWrongCommandMsg(argv[optind]);
     return EXIT_FAILURE;
 }
 
-int isOptionTag(char *str)
+void parseShiftValue(char *arg)
 {
-    return str[0] == '-';
-}
+    char *n_endptr;
+    int n = strtol(arg, &n_endptr, 10);
 
-int isOption(char *str)
-{
-    return strlen(str) >= 2 && str[0] == '-' && str[1] == '-';
-}
+    if (n_endptr == arg || *n_endptr != '\0')
+    {
+        fprintf(stderr, "Shift value specified is not a decimal number\n");
+        exit(EXIT_FAILURE);
+    }
 
-int isHelpOption(char *str)
-{
-    static char *tag = "-h";
-    static char *option = "--help";
-    return strcmp(str, tag) == 0 || strcmp(str, option) == 0;
-}
+    if (n < 1 || n > 25)
+    {
+        fprintf(stderr, "Shift value must be in range 1 .. %d\n", ALPHABET_LEN - 1);
+        exit(EXIT_FAILURE);
+    }
 
-int isShiftOption(char *str)
-{
-    static char *tag = "-s";
-    static char *option = "--shift";
-    return strcmp(str, tag) == 0 || strcmp(str, option) == 0;
+    shift = n;
 }
 
 int isDecodeCommand(char *str)
@@ -230,8 +230,9 @@ void printHelpMsg()
     fprintf(stderr, "If output file is not specified, processed data are written to stdout.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -s, --shift integer      Use specified shift value when encoding\n");
     fprintf(stderr, "  -h, --help               Display current manual\n");
+    fprintf(stderr, "  -s, --shift integer      Use specified shift value when encoding\n");
+    fprintf(stderr, "  -f, --frequency string   Use specified file with letters frrquencies\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "Commands:\n");
     fprintf(stderr, "  encode      Encode stream\n");
