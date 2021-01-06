@@ -56,6 +56,7 @@ float *getFrequencies(const char *text, const int shift);
 char *jsonEncodeFrequencies(float *frequencies);
 void parseShiftOptionValue(char *arg);
 void parseFrequencyOptionValue(char *arg);
+void *safeMalloc(size_t size);
 
 int shift = 0;
 int commandArgInd = 1;
@@ -347,12 +348,7 @@ int getRndShift()
 char *encode(const char *msg, const int shift)
 {
     size_t len = strlen(msg);
-    char *encodedMsg = malloc(len * sizeof(char));
-    if (encodedMsg == NULL)
-    {
-        fprintf(stderr, "caesar-cifer: failed to allocate memory\n");
-        exit(EXIT_FAILURE);
-    }
+    char *encodedMsg = safeMalloc(len * sizeof(char));
 
     for (size_t i = 0; i < len; i++)
     {
@@ -375,12 +371,7 @@ char *encode(const char *msg, const int shift)
 
 float *getFrequencies(const char *text, const int shift)
 {
-    size_t *counts = malloc(ALPHABET_LEN * sizeof(size_t));
-    if (counts == NULL)
-    {
-        fprintf(stderr, "caesar-cifer: failed to allocate memory\n");
-        exit(EXIT_FAILURE);
-    }
+    size_t *counts = safeMalloc(ALPHABET_LEN * sizeof(size_t));
 
     for (size_t i = 0; i < ALPHABET_LEN; i++)
     {
@@ -407,12 +398,7 @@ float *getFrequencies(const char *text, const int shift)
         total += counts[i];
     }
 
-    float *frequencies = malloc(ALPHABET_LEN * sizeof(size_t));
-    if (frequencies == NULL)
-    {
-        fprintf(stderr, "caesar-cifer: failed to allocate memory\n");
-        exit(EXIT_FAILURE);
-    }
+    float *frequencies = safeMalloc(ALPHABET_LEN * sizeof(float));
 
     for (size_t i = 0; i < ALPHABET_LEN; i++)
     {
@@ -426,12 +412,7 @@ float *getFrequencies(const char *text, const int shift)
 char *jsonEncodeFrequencies(float *frequencies)
 {
     char tempStr[1024];
-    char *json = malloc(2048 * sizeof(char));
-    if (json == NULL)
-    {
-        fprintf(stderr, "caesar-cifer: failed to allocate memory\n");
-        exit(EXIT_FAILURE);
-    }
+    char *json = safeMalloc(2048 * sizeof(char));
     json[0] = '\0';
     strcat(json, "{\n");
 
@@ -444,4 +425,15 @@ char *jsonEncodeFrequencies(float *frequencies)
     strcat(json, "}\n\0");
 
     return json;
+}
+
+void *safeMalloc(size_t size)
+{
+    void *ptr = malloc(size);
+    if (ptr == NULL)
+    {
+        fprintf(stderr, "caesar-cifer: failed to allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+    return ptr;
 }
