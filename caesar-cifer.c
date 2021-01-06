@@ -158,20 +158,27 @@ int main(int argc, char *argv[])
 
     if (isDecodeCommand(argv[optind]))
     {
-        if (shift != 0)
-        {
-            fprintf(stderr, "caesar-cifer: shift value ignored for decoding, trying all possible shift values\n");
-        }
-
-        fprintf(stderr, "decoding...\n");
         parseFileNames(argc, argv, optind + 1);
-
         char *msg = readStreamToString(input);
 
-        int sh = findShift(msg);
+        if (shift != 0)
+        {
+            fprintf(stderr, "caesar-cifer: decoded with shift=%d\n", shift);
+        }
+        else
+        {
+            fprintf(stderr, "caesar-cifer: trying all possible shift values\n");
+            shift = findShift(msg);
 
-        printf("Shift=%d\n", sh);
+            fprintf(stderr, "caesar-cifer: best fitting shift=%d\n", shift);
+        }
 
+        char *decodedMsg = encode(msg, 26 - shift);
+
+        fprintf(output != NULL ? output : stdout, "%s", decodedMsg);
+        fflush(stdout);
+
+        free(decodedMsg);
         free(msg);
         closeFiles();
         exit(EXIT_SUCCESS);
