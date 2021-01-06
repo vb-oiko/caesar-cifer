@@ -70,6 +70,8 @@ float *frequencies;
 
 int main(int argc, char *argv[])
 {
+    frequencies = parseFrequencies(DEFAULT_FREQUENCIES);
+
     int opt;
 
     while (1)
@@ -193,7 +195,8 @@ int main(int argc, char *argv[])
 void parseFrequencyOptionValue(char *arg)
 {
     FILE *freqFile = openFile(arg, "r");
-    printf("%p", freqFile);
+    char *freqStr = readStreamToString(freqFile);
+    frequencies = parseFrequencies(freqStr);
 }
 
 void parseShiftOptionValue(char *arg)
@@ -451,9 +454,9 @@ float *parseFrequencies(const char *freqStr)
         frequencies[i] = 0.0;
     }
 
-    char *s = safeMalloc((strlen(freqStr) + 1) * sizeof(char));
-
-    strcpy(s, freqStr);
+    char *freqStrCopy = safeMalloc((strlen(freqStr) + 1) * sizeof(char));
+    strcpy(freqStrCopy, freqStr);
+    char *s = freqStrCopy;
 
     char *pattern = "\"([A-Z])\"\\W*[:]\\W*([0-9]\\.[0-9]+)";
     regex_t regex;
@@ -504,7 +507,7 @@ float *parseFrequencies(const char *freqStr)
         s += (pmatch[0].rm_eo + 1);
     }
 
-    free(s);
+    free(freqStrCopy);
     regfree(&regex);
     return frequencies;
 }
