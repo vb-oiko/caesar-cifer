@@ -16,14 +16,16 @@ int isOptionTag(char *str);
 int isOption(char *str);
 int isDecodeCommand(char *str);
 int isEncodeCommand(char *str);
+int isFrequencyCommand(char *str);
 void parseFileNames(int argc, char *argv[], int fileNameArgInd);
 FILE *openFile(const char *filename, const char *mode);
 void closeFiles();
 void getFilenameWithPath(const char *filename, char *filenameWithPath);
-char *readMsg();
+char *readInputStream();
 int getRndShift();
 char *encode(const char *msg, const int shift);
-float *getFrequencies(const char *msg, const int shift);
+float *getFrequencies(const char *text, const int shift);
+char *jsonEncodeFrequencies(float *frequencies);
 
 int shift = 0;
 int commandArgInd = 1;
@@ -95,7 +97,7 @@ int main(int argc, char *argv[])
 
         parseFileNames(argc, argv, commandArgInd + 1);
 
-        char *msg = readMsg();
+        char *msg = readInputStream();
 
         char *encodedMsg = encode(msg, shift);
         fprintf(output != NULL ? output : stdout, "%s", encodedMsg);
@@ -118,6 +120,29 @@ int main(int argc, char *argv[])
 
         fprintf(stderr, "decoding...\n");
         parseFileNames(argc, argv, commandArgInd + 1);
+        closeFiles();
+        exit(EXIT_SUCCESS);
+    }
+
+    if (isFrequencyCommand(argv[commandArgInd]))
+    {
+        if (shift != 0)
+        {
+            fprintf(stderr, "shift value ignored for computing frequencies\n");
+        }
+
+        fprintf(stderr, "computing frequencies...\n");
+        parseFileNames(argc, argv, commandArgInd + 1);
+        char *text = readInputStream();
+
+        float *frequencies = getFrequencies(text, 0);
+        char *json = jsonEncodeFrequencies(frequencies);
+
+        fprintf(output != NULL ? output : stdout, "%s", json);
+        fflush(stdout);
+
+        free(frequencies);
+        free(json);
         closeFiles();
         exit(EXIT_SUCCESS);
     }
@@ -161,6 +186,11 @@ int isEncodeCommand(char *str)
     static char *command = "encode";
     return strcmp(str, command) == 0;
 }
+int isFrequencyCommand(char *str)
+{
+    static char *command = "frequency";
+    return strcmp(str, command) == 0;
+}
 
 void printHelpMsg()
 {
@@ -176,6 +206,7 @@ void printHelpMsg()
     fprintf(stderr, "Commands:\n");
     fprintf(stderr, "  encode      Encode stream\n");
     fprintf(stderr, "  decode      Decode stream\n");
+    fprintf(stderr, "  frequency   Compute frequencies of the letters in stream\n");
     fprintf(stderr, "\n");
 }
 
@@ -257,7 +288,7 @@ void getFilenameWithPath(const char *filename, char *filenameWithPath)
     strcpy(filenameWithPath, path);
 }
 
-char *readMsg()
+char *readInputStream()
 {
     char *buffer = NULL;
     size_t len = 0;
@@ -306,7 +337,7 @@ char *encode(const char *msg, const int shift)
     return encodedMsg;
 }
 
-float *getFrequencies(const char *msg, const int shift)
+float *getFrequencies(const char *text, const int shift)
 {
     size_t *counts = malloc(ALPHABET_LEN * sizeof(size_t));
     if (counts == NULL)
@@ -320,11 +351,11 @@ float *getFrequencies(const char *msg, const int shift)
         counts[i] = 0;
     }
 
-    size_t len = strlen(msg);
+    size_t len = strlen(text);
 
     for (size_t i = 0; i < len; i++)
     {
-        char *offset = strchr(ALPHABET, msg[i]);
+        char *offset = strchr(ALPHABET, text[i]);
 
         if (offset != NULL)
         {
@@ -354,4 +385,27 @@ float *getFrequencies(const char *msg, const int shift)
 
     free(counts);
     return frequencies;
+}
+
+char *jsonEncodeFrequencies(float *frequencies)
+{
+    char tempStr[1024];
+    char *json = malloc(2048 * sizeof(char));
+    if (json == NULL)
+    {
+        fprintf(stderr, "Failed to allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    strcat(json, "{\n");
+
+    for (size_t i = 0; i < ALPHABET_LEN; i++)
+    {
+        sprintf(tempStr, "  \"%c\": %f%s", ALPHABET[i], frequencies[i], (i == ALPHABET_LEN - 1) ? "\n" : ",\n");
+        strcat(json, tempStr);
+    }
+
+    strcat(json, "}\n\0");
+
+    return json;
 }
