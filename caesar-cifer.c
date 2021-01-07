@@ -43,27 +43,31 @@ const char *DEFAULT_FREQUENCIES = MULTILINE(
         "Z" : 0.001168
     });
 
-void printHelpMsg();
-void printWrongCommandMsg(char *str);
-void printSeeHelp();
+char *encode(const char *msg, const int shift);
+float *getFrequencies(const char *text, const int shift);
+float getFreqDeviation(float *freq1, float *freq2);
+int findShift(char *msg);
+
+char *jsonEncodeFrequencies(float *frequencies);
+float *parseFrequencies(const char *freqStr);
+
+void parseFileNames(int argc, char *argv[], int fileNameArgInd);
+void parseShiftOptionValue(char *arg);
+void parseFrequencyOptionValue(char *arg);
 int isDecodeCommand(char *str);
 int isEncodeCommand(char *str);
 int isFrequencyCommand(char *str);
-void parseFileNames(int argc, char *argv[], int fileNameArgInd);
-FILE *openFile(const char *filename, const char *mode);
-void closeFiles();
+
+void printHelpMsg();
+void printWrongCommandMsg(char *str);
+
 void getFilenameWithPath(const char *filename, char *filenameWithPath);
+FILE *openFile(const char *filename, const char *mode);
 char *readStreamToString(FILE *fileptr);
+void closeFiles();
+
 int getRndShift();
-char *encode(const char *msg, const int shift);
-float *getFrequencies(const char *text, const int shift);
-char *jsonEncodeFrequencies(float *frequencies);
-void parseShiftOptionValue(char *arg);
-void parseFrequencyOptionValue(char *arg);
 void *safeMalloc(size_t size);
-float *parseFrequencies(const char *freqStr);
-float getFreqDeviation(float *freq1, float *freq2);
-int findShift(char *msg);
 
 int shift = 0;
 FILE *input = NULL;
