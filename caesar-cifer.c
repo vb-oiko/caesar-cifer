@@ -66,7 +66,6 @@ float getFreqDeviation(float *freq1, float *freq2);
 int findShift(char *msg);
 
 int shift = 0;
-int commandArgInd = 1;
 FILE *input = NULL;
 FILE *output = NULL;
 float *frequencies;
@@ -256,7 +255,7 @@ int isFrequencyCommand(char *str)
 
 void printHelpMsg()
 {
-    fprintf(stderr, "caesar-cifer [OPTIONS] COMMAND [[input] ouput]\n\n");
+    fprintf(stderr, "caesar-cifer [OPTIONS] COMMAND [[input] output]\n\n");
     fprintf(stderr, "Caesar cifer decoder/encoder\n");
     fprintf(stderr, "If input file is not specified, input data are read from stdin.\n");
     fprintf(stderr, "If output file is not specified, processed data are written to stdout.\n");
