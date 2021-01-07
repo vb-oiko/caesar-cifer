@@ -214,6 +214,7 @@ void parseFrequencyOptionValue(char *arg)
     FILE *freqFile = openFile(arg, "r");
     char *freqStr = readStreamToString(freqFile);
     frequencies = parseFrequencies(freqStr);
+    fclose(freqFile);
 }
 
 void parseShiftOptionValue(char *arg)
@@ -275,12 +276,7 @@ void printHelpMsg()
 void printWrongCommandMsg(char *str)
 {
     fprintf(stderr, "caesar-cifer: '%s' is not a caesar-cifer command.\n", str);
-    printSeeHelp();
-}
-
-void printSeeHelp()
-{
-    fprintf(stderr, "See 'caesar-cifer --help'\n\n");
+    fprintf(stderr, "caesar-cifer: See 'caesar-cifer --help'\n\n");
     printHelpMsg();
 }
 
