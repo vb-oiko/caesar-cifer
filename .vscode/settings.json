@@ -4,6 +4,8 @@
         "string": "c",
         "sstream": "c",
         "limits": "c",
-        "algorithm": "c"
+        "algorithm": "c",
+        "getopt.h": "c",
+        "string.h": "c"
     }
 }
